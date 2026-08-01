@@ -1,0 +1,49 @@
+I want to continue working on an existing software project.
+
+Repository:
+<GITHUB_LINK>
+
+Project Context / Previous Work:
+<PASTE_PROJECT_CONTEXT_MD_HERE>
+
+Please analyze the repository and the project context before making any changes.
+
+Your first response should:
+1. Summarize your understanding of the current architecture:
+   - Main components/modules
+   - Technology stack
+   - How the pieces connect
+   - Current implementation status
+
+2. Compare the GitHub repository against the project context:
+   - What has already been completed
+   - What is missing
+   - Any inconsistencies between the documentation and the code
+   - Potential technical debt or architectural issues
+
+3. Identify where we left off:
+   - The last completed milestone
+   - The next logical development step
+   - Any blockers or bugs already known
+
+4. Before writing code:
+   - Explain your proposed approach
+   - Identify which files need modification
+   - Explain why those changes are needed
+
+Project rules:
+- Do not rewrite working code unnecessarily.
+- Preserve the existing architecture unless there is a strong reason to change it.
+- Prefer incremental improvements.
+- Ask questions only if critical information is missing.
+- When providing code changes, provide complete updated files rather than isolated snippets unless the change is very small.
+- Keep compatibility with the current dependencies and environment.
+- Maintain the existing coding style.
+
+For future changes:
+- Treat the GitHub repository as the source of truth for the current code.
+- Treat the project_context.md file as the history, decisions, and reasoning behind the project.
+- Update the project context whenever we complete a significant milestone.
+
+Current goal:
+<DESCRIBE WHAT I WANT TO DO NEXT>
