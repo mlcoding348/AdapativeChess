@@ -1,0 +1,2 @@
+# AdapativeChess
+Custom stockfish
