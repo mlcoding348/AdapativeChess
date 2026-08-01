@@ -8,7 +8,8 @@ import chess
 class ChessBoard(QWidget):
 
     # Human completed a legal move
-    move_made = Signal()
+    # Sends SAN notation (example: "e4", "Nf3")
+    move_made = Signal(str)
 
     # Human gave check
     check_given = Signal()
@@ -29,26 +30,45 @@ class ChessBoard(QWidget):
         self.highlight_color = QColor("#7FC97F")
         self.move_color = QColor("#B5E7A0")
 
-        self.piece_font = QFont("Arial", 36)
+        self.piece_font = QFont("Segoe UI Symbol", 36)
+
+
+    def reset_board(self):
+        """
+        Reset to normal chess starting position.
+
+        Used for:
+        - Opening practice
+        - New games
+        """
+
+        self.board = chess.Board()
+
+        self.selected_square = None
+        self.legal_moves = []
+
+        self.update()
+
+
 
     def load_position(self, fen):
         """
         Load a chess position from FEN.
 
         Used for:
-        - Opening practice
+        - Opening positions
         - Chess puzzles
-        - Endgame training
-        - Custom positions
+        - Endgames
         """
 
         self.board = chess.Board(fen)
 
-        # Clear previous selection/highlights
         self.selected_square = None
         self.legal_moves = []
 
         self.update()
+
+
 
     def paintEvent(self, event):
 
@@ -106,7 +126,7 @@ class ChessBoard(QWidget):
                     color
                 )
 
-                # Selected square
+
                 if square == self.selected_square:
 
                     painter.fillRect(
@@ -117,7 +137,7 @@ class ChessBoard(QWidget):
                         self.highlight_color
                     )
 
-                # Legal destination squares
+
                 if square in self.legal_moves:
 
                     painter.fillRect(
@@ -128,7 +148,7 @@ class ChessBoard(QWidget):
                         self.move_color
                     )
 
-                # Draw piece
+
                 piece = self.board.piece_at(square)
 
                 if piece:
@@ -142,6 +162,8 @@ class ChessBoard(QWidget):
                         pieces[piece.symbol()]
                     )
 
+
+
     def mousePressEvent(self, event):
 
         board_size = min(
@@ -151,24 +173,33 @@ class ChessBoard(QWidget):
 
         square_size = board_size // 8
 
-        col = int(event.position().x() // square_size)
-        row = int(event.position().y() // square_size)
+        col = int(
+            event.position().x() // square_size
+        )
+
+        row = int(
+            event.position().y() // square_size
+        )
+
 
         if col > 7 or row > 7:
             return
+
 
         square = chess.square(
             col,
             7 - row
         )
 
+
         #
-        # First click -> select white piece
+        # First click
         #
 
         if self.selected_square is None:
 
             piece = self.board.piece_at(square)
+
 
             if piece and piece.color == chess.WHITE:
 
@@ -182,10 +213,13 @@ class ChessBoard(QWidget):
 
                 self.update()
 
+
             return
 
+
+
         #
-        # Second click -> attempt move
+        # Second click
         #
 
         move = chess.Move(
@@ -193,26 +227,49 @@ class ChessBoard(QWidget):
             square
         )
 
+
         if move in self.board.legal_moves:
+
+
+            #
+            # Calculate SAN BEFORE pushing
+            #
+
+            san = self.board.san(move)
+
 
             self.board.push(move)
 
-            # Did this move give check?
+
+            #
+            # Check detection
+            #
+
             if self.board.is_check():
+
                 self.check_given.emit()
 
-            # Tell MainWindow that the player's move is complete
-            self.move_made.emit()
 
-        # Clear selection
+
+            #
+            # Send move to MainWindow
+            #
+
+            self.move_made.emit(
+                san
+            )
+
+
         self.selected_square = None
         self.legal_moves = []
 
         self.update()
 
+
+
     def make_engine_move(self, move):
         """
-        Apply Stockfish's move.
+        Apply Stockfish move.
         """
 
         if move in self.board.legal_moves:

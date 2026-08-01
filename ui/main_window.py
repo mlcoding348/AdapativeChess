@@ -5,6 +5,9 @@ from PySide6.QtWidgets import (
     QLabel,
 )
 
+import chess
+from openings.opening_manager import OpeningManager
+
 from ui.chess_board import ChessBoard
 from ui.engine import ChessEngine
 
@@ -38,17 +41,53 @@ class MainWindow(QWidget):
 
         info_panel.addStretch()
 
+
+        #
         # Chess board
+        #
+
         self.board = ChessBoard()
 
+
+        #
         # Stockfish engine
+        #
+
         self.engine = ChessEngine()
 
-        # Store complete turns:
-        # [("e4", "e5"), ("Nf3", "Nc6"), ...]
+
+        #
+        # Temporary opening test:
+        #
+        # Queen's Gambit
+        #
+        # 1. d4 d5
+        # 2. c4
+        #
+        # Black to move
+        #
+
+        self.opening_manager = OpeningManager()
+        fen = self.opening_manager.load_opening(
+            "Queen's Gambit",
+            "Queen's Gambit Declined"
+        )
+
+        self.board.load_position(fen)
+
+
+        #
+        # Store moves
+        #
+
         self.moves = []
 
         self.checks_given = 0
+
+
+        #
+        # Signals
+        #
 
         self.board.move_made.connect(
             self.engine_move
@@ -58,8 +97,10 @@ class MainWindow(QWidget):
             self.player_check
         )
 
+
         layout.addLayout(info_panel, 1)
         layout.addWidget(self.board, 3)
+
 
         self.setStyleSheet("""
             QWidget {
@@ -73,21 +114,26 @@ class MainWindow(QWidget):
             }
         """)
 
+
+        #
+        # If opening starts with Black,
+        # Stockfish plays first
+        #
+
+        if self.board.board.turn == chess.BLACK:
+
+            self.engine_move()
+
+
     def engine_move(self):
         """
-        Human has already moved.
-        Calculate SAN for both moves and let Stockfish respond.
+        Stockfish makes a move.
+
+        Supports:
+        - Normal game after human move
+        - Opening practice where engine starts
         """
 
-        #
-        # Human move
-        #
-
-        human_move = self.board.board.peek()
-
-        self.board.board.pop()
-        human_san = self.board.board.san(human_move)
-        self.board.board.push(human_move)
 
         #
         # Game over?
@@ -95,13 +141,10 @@ class MainWindow(QWidget):
 
         if self.board.board.is_game_over():
 
-            self.moves.append(
-                (human_san, "")
-            )
-
             self.update_history()
 
             return
+
 
         #
         # Engine move
@@ -111,26 +154,32 @@ class MainWindow(QWidget):
             self.board.board
         )
 
+
         engine_san = self.board.board.san(
             engine_move
         )
+
 
         self.board.make_engine_move(
             engine_move
         )
 
+
         #
-        # Save complete turn
+        # Save engine move
         #
 
         self.moves.append(
             (
-                human_san,
+                "",
                 engine_san
             )
         )
 
+
         self.update_history()
+
+
 
     def player_check(self):
         """
@@ -150,6 +199,7 @@ class MainWindow(QWidget):
             f"Engine Elo: {self.engine.get_elo()}"
         )
 
+
     def update_history(self):
 
         history = "Move History:\n\n"
@@ -163,13 +213,24 @@ class MainWindow(QWidget):
                 f"{move_number}. {white} {black}\n"
             )
 
+
         self.history_label.setText(
             history
         )
 
-        self.turn_label.setText(
-            "Turn: White"
-        )
+
+        if self.board.board.turn == chess.WHITE:
+
+            self.turn_label.setText(
+                "Turn: White"
+            )
+
+        else:
+
+            self.turn_label.setText(
+                "Turn: Black"
+            )
+
 
     def closeEvent(self, event):
         """
