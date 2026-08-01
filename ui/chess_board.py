@@ -31,6 +31,25 @@ class ChessBoard(QWidget):
 
         self.piece_font = QFont("Arial", 36)
 
+    def load_position(self, fen):
+        """
+        Load a chess position from FEN.
+
+        Used for:
+        - Opening practice
+        - Chess puzzles
+        - Endgame training
+        - Custom positions
+        """
+
+        self.board = chess.Board(fen)
+
+        # Clear previous selection/highlights
+        self.selected_square = None
+        self.legal_moves = []
+
+        self.update()
+
     def paintEvent(self, event):
 
         painter = QPainter(self)
