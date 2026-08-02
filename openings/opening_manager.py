@@ -1,9 +1,8 @@
-import chess
-
 from openings.queen_gambit import QUEENS_GAMBIT
 
 
 class OpeningManager:
+
 
     def __init__(self):
 
@@ -13,27 +12,49 @@ class OpeningManager:
 
         self.name = None
 
+        self.opening = None
+
+
+
+    def get_openings(self):
+
+        return list(
+            QUEENS_GAMBIT.keys()
+        )
+
+
+
+    def get_variations(
+        self,
+        opening_name
+    ):
+
+        if opening_name in QUEENS_GAMBIT:
+
+            return list(
+                QUEENS_GAMBIT[opening_name].keys()
+            )
+
+        return []
+
+
 
     def load_opening(
         self,
         opening_name,
-        variation_name
+        variation_name,
+        color=None
     ):
 
-        if opening_name == "Queen's Gambit":
 
-            self.moves = QUEENS_GAMBIT[variation_name]
-
-        else:
-
-            raise ValueError(
-                "Opening not supported"
-            )
+        self.moves = QUEENS_GAMBIT[opening_name][variation_name]
 
 
         self.current_move = 0
 
         self.name = variation_name
+
+        self.opening = opening_name
 
 
 
@@ -59,10 +80,17 @@ class OpeningManager:
 
 
 
+    def advance_trainer_move(self):
+
+        self.current_move += 1
+
+
+
     def player_move_correct(
         self,
         move
     ):
+
 
         expected = self.get_next_move()
 
