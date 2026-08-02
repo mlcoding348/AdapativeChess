@@ -1,471 +1,699 @@
-# Adaptive Chess Project Context
+# Adaptive Chess Trainer - Project Context
 
-## Project
+Last Updated: 2026-08-01
+
+---
+
+# Project Overview
+
+## Project Name
 
 Adaptive Chess Trainer
 
 ## Goal
 
-A desktop chess application where Stockfish becomes weaker every time the human player gives check.
+A desktop chess application where:
 
-The project is now expanding into an opening training mode where the user can select an opening and variation, start from the initial chess position, and practice the opening sequence for either White or Black.
-
----
-
-# Technology
-
-* Python
-* PySide6
-* python-chess
-* Stockfish
-* VS Code
-* Virtual environment: `.venv`
+1. The user plays against Stockfish.
+2. Stockfish dynamically loses strength when the human player gives check.
+3. The application includes an opening training system.
+4. The user can practice openings as White or Black.
+5. After completing an opening line, the application transitions into normal Stockfish gameplay.
 
 ---
 
-# Current Folder Structure
+# Technology Stack
 
-```text
+## Programming Language
+
+Python
+
+## GUI Framework
+
+PySide6
+
+## Chess Logic
+
+python-chess
+
+## Chess Engine
+
+Stockfish using UCI protocol
+
+## Development Environment
+
+Python virtual environment:
+
+
+.venv
+
+
+---
+
+# Project Structure
+
+
 Chess/
-│
+
 ├── main.py
+
 ├── engine/
-│   └── stockfish.exe
-│
-├── ui/
-│   ├── __init__.py
-│   ├── chess_board.py
-│   ├── engine.py
-│   └── main_window.py
-│
+│ └── stockfish.exe
+
 ├── openings/
-│   ├── opening_manager.py
-│   └── queen_gambit.py
-│
+│ ├── init.py
+│ ├── queen_gambit.py
+│ └── opening_manager.py
+
+├── ui/
+│ ├── init.py
+│ ├── chess_board.py
+│ ├── engine.py
+│ ├── main_window.py
+│ └── opening_panel.py
+
 └── .venv/
-```
+
 
 ---
 
-# Completed Features
+# Architecture Overview
 
-## GUI
 
-* Main window
-* Dark theme
-* Responsive chessboard
-* Information panel
-* Move history panel
+MainWindow
+|
+|
++---- ChessBoard
+|
+|
++---- ChessEngine
+|
+|
++---- OpeningPanel
+|
+|
++---- OpeningManager
+|
+|
++---- Opening Database
 
-## Chess Board
-
-Implemented:
-
-* Interactive chess board
-* Click-to-move
-* Legal move validation
-* Human always plays White
-* Engine automatically responds
-* Unicode chess pieces
-* Move highlighting
-
-Current `ChessBoard` additions:
-
-### Reset support
-
-Added:
-
-```python
-reset_board()
-```
-
-Purpose:
-
-* Start new games
-* Opening practice
-* Return to initial chess position
-
-### FEN support
-
-Added:
-
-```python
-load_position(fen)
-```
-
-Purpose:
-
-* Opening positions
-* Puzzles
-* Endgames
-
-This is currently not the preferred approach for opening practice.
 
 ---
 
-# Engine
-
-Implemented:
-
-* Stockfish integration through `python-chess`
-* Engine executable:
-
-```text
-engine/stockfish.exe
-```
-
-Current engine features:
-
-* `get_move(board)`
-* `set_elo(elo)`
-* `decrease_elo(amount=100)`
-* `get_elo()`
-* `close()`
+# File Responsibilities
 
 ---
 
-# Adaptive Difficulty
+# main.py
 
-Current behavior:
+## Purpose
 
-Starting Elo:
+Application entry point.
 
-```text
-3000
-```
+Responsibilities:
 
-Every legal check by the player:
+- Create QApplication
+- Create MainWindow
+- Start GUI loop
 
-```text
-checks_given += 1
+Run application:
 
-engine.decrease_elo(100)
-```
 
-UI updates:
+python main.py
 
-* Engine Elo
-* Checks Given
 
 ---
 
-# Move History
+# ui/chess_board.py
 
-Implemented:
+## Purpose
 
-* SAN notation history
+Handles chess board rendering and player interaction.
+
+Responsibilities:
+
+- Draw chess board
+- Display pieces
+- Handle mouse clicks
+- Validate legal moves
+- Maintain current chess.Board state
+- Emit player move events
+
+Current features:
+
+Completed:
+
+- Click-to-move
+- Legal move highlighting
+- Illegal move prevention
+- Unicode chess pieces
+- Reset board
+- Load FEN positions
+- Support White and Black orientation
+
+Signals:
+
+
+move_attempted
+
+
+Triggered when player attempts a move.
+
+
+check_given
+
+
+Triggered when player gives check.
+
+---
+
+# ui/engine.py
+
+## Purpose
+
+Stockfish wrapper.
+
+Responsibilities:
+
+- Start Stockfish process
+- Send board position
+- Request engine move
+- Control engine Elo
+
+Current engine configuration:
+
+Starting strength:
+
+
+3000 Elo
+
+
+Adaptive mechanic:
+
+Every player check:
+
+
+Engine Elo -100
+
 
 Example:
 
-```text
-1. e4 e5
-2. Nf3 Nc6
-3. Bb5 a6
-```
+
+3000 Elo
+
+Player gives check
+
+2900 Elo
+
+Player gives check
+
+2800 Elo
+
 
 ---
 
-# Opening Trainer Work (In Progress)
+# ui/main_window.py
 
-## Previous Approach
+## Purpose
 
-Initially attempted:
+Main application controller.
 
-```text
-Select opening
-      |
-      v
-Load FEN position
-      |
-      v
-Continue with Stockfish
-```
+Responsibilities:
+
+- Connect UI components
+- Control training mode
+- Control Stockfish mode
+- Track move history
+- Update labels
+- Manage game state
+
+---
+
+# Game Modes
+
+## Opening Training Mode
+
+Flow:
+
+
+Player Move
+|
+|
+OpeningManager validates move
+|
+|
+Correct?
+|
++---- Yes
+|
++---- Update progress
+|
++---- Play next opening move
+
+
+If incorrect:
+
+
+Status:
+Incorrect move
+
+Expected:
+d4
+
+
+---
+
+## Normal Stockfish Mode
+
+After opening completion:
+
+
+Opening Complete
+
+    |
+
+Training Disabled
+
+    |
+
+Current chess position preserved
+
+    |
+
+Stockfish continues
+
+
+The opening system does not create a separate game. It only trains the player until completion.
+
+---
+
+# ui/opening_panel.py
+
+## Purpose
+
+GUI controls for opening training.
+
+Features:
+
+- Select opening
+- Select variation
+- Choose playing color
+- Start training
+
+Signal:
+
+
+training_started(
+opening,
+variation,
+color
+)
+
 
 Example:
 
-Queen's Gambit loaded after:
-
-```text
-1. d4 d5 2. c4
-```
-
-Problem:
-
-This starts in the middle of the opening.
-
----
-
-# New Opening Trainer Design
-
-Desired behavior:
-
-```text
-Select:
-
-Queen's Gambit
-Queen's Gambit Declined
-
-
-Start:
-
-Initial position
-
-
-User:
-1. d4
-
-
-Application:
-1...d5
-
-
-User:
-2. c4
-
-
-Application:
-2...e6
-```
-
-The trainer should:
-
-1. Start from the normal chess starting position
-2. Track the opening sequence
-3. Validate the user's moves
-4. Play theory moves automatically
-5. Switch to Stockfish after the opening line finishes
-
----
-
-# Opening Manager
-
-Created:
-
-```text
-openings/opening_manager.py
-```
-
-Current functionality:
-
-* Load opening
-* Track current move
-* Validate player move
-* Return expected next move
-
-Example:
 
 Opening:
+Queen's Gambit
 
-```python
-[
-"d4",
-"d5",
-"c4",
-"e6",
-"Nc3",
-"Nf6"
-]
-```
+Variation:
+Orthodox Defense
 
-Testing completed successfully.
+Play As:
+White
 
-Test output:
-
-```text
-d4
-True
-d5
-False
-```
-
-Meaning:
-
-* Expected move correctly returned
-* Correct move accepted
-* Incorrect move rejected
 
 ---
 
-# Queen's Gambit Database
+# openings/opening_manager.py
 
-Created:
+## Purpose
 
-```text
-openings/queen_gambit.py
-```
+Controls opening training logic.
+
+Responsibilities:
+
+- Load opening data
+- Track current move
+- Validate player's move
+- Return expected move
+- Track progress
+
+Current hierarchy:
+
+
+Opening
+
+|
+
+Variation
+
+|
+
+Move List
+
+
+Example:
+
+
+Queen's Gambit
+
+Queen's Gambit Declined - Orthodox Defense
+
+    d4
+    d5
+    c4
+    e6
+
+---
+
+# openings/queen_gambit.py
+
+## Purpose
+
+Opening database.
+
+Current supported opening family:
+
+
+Queen's Gambit
+
 
 Current variations:
 
-## Queen's Gambit Declined
 
-```text
-d4
-d5
-c4
-e6
-Nc3
-Nf6
-Bg5
-Be7
-```
+Queen's Gambit Declined - Orthodox Defense
 
-## Slav Defense
+Queen's Gambit Declined - Tartakower Defense
 
-```text
-d4
-d5
-c4
-c6
-Nc3
-Nf6
-Nf3
-dxc4
-```
+Queen's Gambit Declined - Cambridge Springs
 
-## Queen's Gambit Accepted
+Queen's Gambit Declined - Lasker Defense
 
-```text
-d4
-d5
-c4
-dxc4
-Nf3
-Nf6
-e3
-```
+Queen's Gambit Declined - Semi-Slav
+
+Queen's Gambit Accepted - Main Line
+
+Slav Defense - Main Line
+
 
 ---
 
-# Current ChessBoard Change
+# Completed Milestones
 
-Updated signal:
+---
 
-Before:
+# Milestone 1 - Basic Chess Application
 
-```python
-move_made = Signal()
-```
+Completed:
 
-After:
+✅ PySide6 GUI
 
-```python
-move_made = Signal(str)
-```
+✅ Chess board rendering
 
-Purpose:
+✅ Unicode pieces
 
-Send SAN move information to MainWindow.
+✅ Click-to-move
+
+✅ Legal move validation
+
+✅ Stockfish integration
+
+---
+
+# Milestone 2 - Adaptive Stockfish Engine
+
+Completed:
+
+- Stockfish starts at 3000 Elo
+- Player checks reduce engine strength
+
+Logic:
+
+
+Player gives check
+
+↓
+
+Decrease engine Elo by 100
+
+
+---
+
+# Milestone 3 - Opening Trainer
+
+Completed:
+
+Features:
+
+✅ Opening selection
+
+✅ Variation selection
+
+✅ White/Black selection
+
+✅ Move validation
+
+✅ Progress tracking
+
+✅ Incorrect move messages
 
 Example:
 
-```python
-self.move_made.emit("d4")
-```
+
+Incorrect move.
+
+Expected:
+d4
+
+
+---
+
+# Milestone 4 - Opening Completion Transition
+
+Completed:
+
+Before:
+
+
+Opening completed
+
+Game stopped
+
+
+After:
+
+
+Opening completed
+
+Stockfish activated
+
+Continue from current position
+
+
+Important design decision:
+
+The chess board state is the source of truth.
+
+The opening trainer only controls expected moves.
+
+---
+
+# UI Improvements Completed
+
+---
+
+# Move History Size Fix
+
+Problem:
+
+The move history label grew vertically as games became longer.
+
+This caused:
+
+
+Move History expands
+
+↓
+
+Chess board expands
+
+
+Solution:
+
+Limit move history height.
+
+Future improvement:
+
+Replace QLabel with:
+
+- QListWidget
+- QTextEdit
+- Scrollable history
+- Clickable moves
+
+---
+
+# Current Known Limitations
+
+---
+
+# Opening System
+
+Current implementation:
+
+Linear move sequences.
+
+Example:
+
+
+d4
+
+d5
+
+c4
+
+e6
+
+
+Problem:
+
+Real openings have branches.
+
+Example:
+
+
+d4
+
+├── d5
+│
+├── Nf6
+│
+└── e6
+
+
+---
+
+# Future Roadmap
+
+---
+
+# Phase 1 - Expand Opening Library
+
+Priority:
+
+Queen's Gambit expansion:
+
+Completed:
+
+- Orthodox Defense
+- Tartakower Defense
+- Cambridge Springs
+- Lasker Defense
+- Semi-Slav
+
+Next:
+
+Add:
+
+- Italian Game
+- Ruy Lopez
+- London System
+- Sicilian Defense
+- French Defense
+- Caro-Kann
+- King's Indian Defense
+
+---
+
+# Phase 2 - Opening Intelligence
+
+Add:
+
+- Opening accuracy percentage
+- First move deviation detection
+- Evaluation loss
+- Best move recommendation
+- Common mistakes
+
+Example:
+
+
+Move 6:
+
+Your move:
+Bg5
+
+Theory:
+Nf3
+
+Evaluation loss:
+-0.8
+
+
+---
+
+# Phase 3 - Opening Tree System
+
+Replace:
+
+
+Opening
+|
+Variation
+|
+Move List
+
+
+With:
+
+
+Opening Tree
+
+  Position
+
+      |
+
+  Multiple branches
+
+      |
+
+  Training paths
 
 This will allow:
 
-```text
-ChessBoard
-      |
-      v
-MainWindow
-      |
-      v
-OpeningManager
-```
+- Multiple correct moves
+- More realistic opening practice
+- Chess database integration
 
 ---
 
-# Current Issue / Blocker
+# Current Development Status
 
-After updating `ChessBoard`, the application displays:
+Completed:
 
-* Board squares ✅
-* No chess pieces ❌
+✅ Chess board  
+✅ Stockfish gameplay  
+✅ Adaptive Elo system  
+✅ Opening trainer  
+✅ Queen's Gambit variations  
+✅ White/Black training  
+✅ Stockfish takeover after openings  
+✅ Move history UI fix  
 
-The issue has NOT been confirmed.
 
-Possible causes considered:
+Current focus:
 
-* Unicode rendering
-* Font issue
-* Painting issue
-* Another interaction caused by recent changes
-
-The previous assumption that it was only a font problem should not be considered confirmed.
-
-Debugging stopped here.
+Expand opening database and improve opening intelligence.
 
 ---
 
-# Current Main Architecture
+# Important Development Notes
 
-Current:
+When continuing development:
 
-```text
-MainWindow
-    |
-    ├── ChessBoard
-    |
-    ├── ChessEngine
-    |
-    └── OpeningManager (new, not fully connected)
-```
-
-Target:
-
-```text
-MainWindow
-    |
-    ├── ChessBoard
-    |
-    ├── OpeningManager
-    |
-    └── ChessEngine
-
-
-Game Flow:
-
-Human Move
-    |
-    v
-OpeningManager
-    |
-    +---- Correct opening move
-    |          |
-    |          v
-    |     Play theory move
-    |
-    |
-    +---- Opening finished
-               |
-               v
-          Stockfish mode
-```
-
----
-
-# Next Steps
-
-Before continuing opening integration:
-
-1. Fix missing chess piece rendering issue
-2. Confirm ChessBoard displays pieces normally again
-3. Connect OpeningManager to MainWindow
-4. Add opening selector UI
-5. Add variation selector UI
-6. Add "Start Practice" button
-7. Add opening completion detection
-8. Switch to Stockfish after theory ends
-
----
-
-# Development Rules
-
-* Preserve existing architecture
-* Avoid unnecessary rewrites
-* Modify only required files
-* Prefer incremental changes
-* Keep opening logic separate from engine logic
-* Treat repository code as source of truth
-* Update this context after significant milestones
+1. Do not rewrite working components unnecessarily.
+2. Keep chess.Board as the source of truth.
+3. Opening logic should remain separate from Stockfish logic.
+4. New openings should only require changes to the opening database.
+5. Preserve the current PySide6 architecture.
