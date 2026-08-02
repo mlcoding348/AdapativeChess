@@ -1,0 +1,3 @@
+cd "C:\Users\dkobal01\OneDrive - dentsu\Desktop\Projects\Chess"
+.\.venv\Scripts\activate
+python main.py
